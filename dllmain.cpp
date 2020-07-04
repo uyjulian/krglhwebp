@@ -93,7 +93,7 @@ bool TVPAcceptSaveAsWebP(void* formatdata, const ttstr & type, class iTJSDispatc
 static int WebPIStreamWrite(const uint8_t* data, size_t data_size, const WebPPicture* pic)
 {
 	ULONG bytes_written = 0;
-	((IStream*)pic->custom_ptr)->Write(data, data_size, &bytes_written);
+	((IStream*)(pic->custom_ptr))->Write(data, data_size, &bytes_written);
 	return bytes_written == data_size;
 }
 
