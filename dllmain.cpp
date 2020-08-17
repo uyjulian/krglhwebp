@@ -1,10 +1,16 @@
 
+#if 0
 #include <windows.h>
+#endif
+#include "ncbind/ncbind.hpp"
+#include "istream_compat.h"
 #include <webp/encode.h>
 #include <webp/decode.h>
 #include <memory>
 #include "tp_stub.h"
+#if 0
 #define EXPORT(hr) extern "C" __declspec(dllexport) hr __stdcall
+#endif
 
 void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback sizecallback, tTVPGraphicScanLineCallback scanlinecallback, tTVPMetaInfoPushCallback metainfopushcallback, IStream *src, tjs_int keyidx, tTVPGraphicLoadMode mode)
 {
@@ -218,6 +224,14 @@ void TVPSaveAsWebP(void* formatdata, void* callbackdata, IStream* dst, const tts
 	}
 }
 
+static void krglhwebp_init()
+{
+	TVPRegisterGraphicLoadingHandler( ttstr(TJS_W(".webp")), &TVPLoadWEBP, &TVPLoadHeaderWEBP, &TVPSaveAsWebP, &TVPAcceptSaveAsWebP, NULL );
+}
+
+NCB_PRE_REGIST_CALLBACK(krglhwebp_init);
+
+#if 0
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved ) {
 	return TRUE;
 }
@@ -241,3 +255,4 @@ EXPORT(HRESULT) V2Unlink() {
 	TVPUninitImportStub();
 	return S_OK;
 }
+#endif
