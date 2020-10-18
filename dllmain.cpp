@@ -46,6 +46,7 @@ void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 			TVPThrowExceptionMessage(TJS_W("Invalid WebP image (Grayscale mode)"));
 			return;
 		}
+		sizecallback(callbackdata, width, height);
 		for(int y = 0; y < height; y++) {
 			void *scanline = scanlinecallback(callbackdata, y);
 			if(!scanline) break;
