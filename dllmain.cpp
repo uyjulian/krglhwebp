@@ -44,7 +44,7 @@ void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 		for(int y = 0; y < height; y++) {
 			void *scanline = scanlinecallback(callbackdata, y);
 			if(!scanline) break;
-			memcpy(scanline, (const void*)&buffer[y*stride], width);
+			memcpy(scanline, (const void*)&buffer[y*width], width);
 			scanlinecallback(callbackdata, -1);
 		}
 		WebPFree(buffer);
