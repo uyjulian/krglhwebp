@@ -5,7 +5,7 @@ WINDRES = i686-w64-mingw32-windres
 GIT_TAG := $(shell git describe --abbrev=0 --tags)
 CFLAGS += -O3 -flto
 CFLAGS += -Wall -Wno-unused-value -Wno-format -I. -I.. -Ilibwebp -Ilibwebp/src -DGIT_TAG=\"$(GIT_TAG)\" -DNDEBUG -DWIN32 -D_WIN32 -D_WINDOWS 
-CFLAGS += -D_USRDLL -DMINGW_HAS_SECURE_API -DUNICODE -D_UNICODE -DNO_STRICT -DCMAKE_INTDIR=\"Release\"   
+CFLAGS += -D_USRDLL -DMINGW_HAS_SECURE_API -DUNICODE -D_UNICODE -DNO_STRICT -DCMAKE_INTDIR=\"Release\"  -DWEBP_HAVE_SSE2 -DWEBP_HAVE_SSE41
 LDFLAGS += -static -static-libstdc++ -static-libgcc -shared -Wl,--kill-at
 LDLIBS +=
 
@@ -29,6 +29,9 @@ SOURCES := ../tp_stub.cpp dllmain.cpp krglhwebp.rc $(WEBP_SOURCES) $(WEBP_SSE2_S
 OBJECTS := $(SOURCES:.c=.o)
 OBJECTS := $(OBJECTS:.cpp=.o)
 OBJECTS := $(OBJECTS:.rc=.o)
+
+$(WEBP_SSE2_SOURCES:.c=.o): CFLAGS += -msse2
+$(WEBP_SSE41_SOURCES:.c=.o): CFLAGS += -msse4.1
 
 BINARY ?= krglhwebp_unstripped.dll
 BINARY_STRIPPED ?= krglhwebp.dll
