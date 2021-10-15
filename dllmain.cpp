@@ -6,7 +6,7 @@
 #include "tp_stub.h"
 #define EXPORT(hr) extern "C" __declspec(dllexport) hr __stdcall
 
-static const tjs_int WEBP_VP8_HEADER_SIZE = 128;
+static const tjs_int WEBP_VP8_HEADER_SIZE = 30;
 static const tjs_int WEBP_IDECODE_BUFFER_SZ = (1 << 16);
 
 void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback sizecallback, tTVPGraphicScanLineCallback scanlinecallback, tTVPMetaInfoPushCallback metainfopushcallback, IStream *src, tjs_int keyidx, tTVPGraphicLoadMode mode)
