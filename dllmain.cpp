@@ -64,6 +64,7 @@ void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 	}
 
 	tjs_uint8 *outbuf = NULL;
+	tjs_int outbufpitch = 0;
 	if (0 == pitch || glmNormal != mode)
 	{
 		// we need a temparary buffer
@@ -71,35 +72,40 @@ void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 	else if (pitch < 0)
 	{
 		outbuf = (tjs_uint8 *)scanlinecallback(callbackdata, height - 1);
+		outbufpitch = pitch;
 	}
 	else if (pitch > 0)
 	{
 		outbuf = line0;
+		outbufpitch = pitch;
 	}
 	if (pitch < 0)
 	{
 		// negative, needs flip
 		config.options.flip = 1;
 		pitch = -pitch;
+		outbufpitch = -outbufpitch;
 	}
 	if (NULL == outbuf)
 	{
 		// allocate the temporary buffer
 		config.options.flip = 0;
-		outbuf = (tjs_uint8 *)malloc(pitch * height);
+		outbufpitch = width * sizeof(tjs_uint32);
+		outbuf = (tjs_uint8 *)malloc(outbufpitch * height);
+
 		if (!outbuf)
 		{
 			TVPThrowExceptionMessage(TJS_W("Could not allocate temporary buffer"));
 			return;
 		}
 	}
-	memset(outbuf, 0, pitch * height);
+	memset(outbuf, 0, outbufpitch * height);
 
 	{
 		config.output.colorspace = MODE_BGRA;
 		config.output.u.RGBA.rgba = (uint8_t*)outbuf;
-		config.output.u.RGBA.stride = pitch;
-		config.output.u.RGBA.size = pitch * height;
+		config.output.u.RGBA.stride = outbufpitch;
+		config.output.u.RGBA.size = outbufpitch * height;
 		config.output.is_external_memory = 1;
 	}
 
@@ -149,11 +155,11 @@ void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 			}
 			if (sizeof(tjs_uint32) == size_pixel)
 			{
-				memcpy(scanline, (const void*)&outbuf[y * pitch], width * size_pixel);
+				memcpy(scanline, (const void*)&outbuf[y * outbufpitch], width * size_pixel);
 			}
 			else if (sizeof(tjs_uint8) == size_pixel)
 			{
-				TVPBLConvert32BitTo8Bit((tjs_uint8*)scanline, (const tjs_uint32*)(tjs_uint8*)&outbuf[y * pitch], width * size_pixel);
+				TVPBLConvert32BitTo8Bit((tjs_uint8*)scanline, (const tjs_uint32*)(tjs_uint8*)&outbuf[y * outbufpitch], width * size_pixel);
 			}
 			scanlinecallback(callbackdata, -1);
 		}
