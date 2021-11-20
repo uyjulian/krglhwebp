@@ -13,3 +13,6 @@
 *.dll
 *.o
 *.7z
+*.dep.make
+build-*/
+
