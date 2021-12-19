@@ -1,0 +1,78 @@
+name: Continuous Integration
+on:
+  push:
+    paths:
+      - "**.c"
+      - "**.h"
+      - "**.cpp"
+      - "**.hpp"
+      - "**.build"
+      - "**.in"
+      - "**.yml"
+  pull_request:
+    paths:
+      - "**.c"
+      - "**.h"
+      - "**.cpp"
+      - "**.hpp"
+      - "**.build"
+      - "**.in"
+      - "**.yml"
+
+jobs:
+  build-win32-intel32-gcc:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - run: sudo apt-get update
+      - run: sudo apt-get install build-essential mingw-w64 nasm
+      - run: sudo update-alternatives --set i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-gcc-posix
+      - run: sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+      - run: make TARGET_ARCH=intel32 archive -j
+      - uses: actions/upload-artifact@master
+        with:
+          name: binary-win32-intel32-gcc
+          path: ./*.7z
+
+  build-win32-intel64-gcc:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - run: sudo apt-get update
+      - run: sudo apt-get install build-essential mingw-w64 nasm
+      - run: sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+      - run: sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+      - run: make TARGET_ARCH=intel64 archive -j
+      - uses: actions/upload-artifact@master
+        with:
+          name: binary-win32-intel64-gcc
+          path: ./*.7z
+
+  create-release:
+    needs: [build-win32-intel32-gcc, build-win32-intel64-gcc]
+    runs-on: ubuntu-20.04
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+    - name: Download win32 intel32 gcc artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: binary-win32-intel32-gcc
+
+    - name: Download win32 intel64 gcc artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: binary-win32-intel64-gcc
+
+    - name: Create release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: "${{ contains(github.ref, '-rc') }}"
+        files: |
+          binary-win32-intel32-gcc/*
+          binary-win32-intel64-gcc/*
