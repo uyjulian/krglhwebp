@@ -4,6 +4,8 @@ WEBP_SSE2_SOURCES += external/libwebp/src/dsp/alpha_processing_sse2.c external/l
 WEBP_SSE41_SOURCES += external/libwebp/src/dsp/alpha_processing_sse41.c external/libwebp/src/dsp/dec_sse41.c external/libwebp/src/dsp/upsampling_sse41.c external/libwebp/src/dsp/yuv_sse41.c external/libwebp/src/dsp/enc_sse41.c external/libwebp/src/dsp/lossless_enc_sse41.c
 WEBP_NEON_SOURCES += external/libwebp/src/dsp/alpha_processing_neon.c external/libwebp/src/dsp/cost_neon.c external/libwebp/src/dsp/dec_neon.c external/libwebp/src/dsp/enc_neon.c external/libwebp/src/dsp/filters_neon.c external/libwebp/src/dsp/lossless_enc_neon.c external/libwebp/src/dsp/lossless_neon.c external/libwebp/src/dsp/rescaler_neon.c external/libwebp/src/dsp/upsampling_neon.c external/libwebp/src/dsp/yuv_neon.c
 
+TARGET_ARCH ?= intel32
+
 ifneq (x,x$(findstring intel,$(TARGET_ARCH)))
 CFLAGS += -DWEBP_HAVE_SSE2 -DWEBP_HAVE_SSE41
 endif
