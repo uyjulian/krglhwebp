@@ -72,9 +72,9 @@ jobs:
           brew install make nasm
       - name: Set up mingw-w64
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20211002/llvm-mingw-20211002-msvcrt-ubuntu-18.04-x86_64.tar.xz
-          tar xvf llvm-mingw-20211002-msvcrt-ubuntu-18.04-x86_64.tar.xz
-          mv llvm-mingw-20211002-msvcrt-ubuntu-18.04-x86_64 /opt/llvm-mingw
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20220323/llvm-mingw-20220323-msvcrt-ubuntu-18.04-x86_64.tar.xz
+          tar xvf llvm-mingw-20220323-msvcrt-ubuntu-18.04-x86_64.tar.xz
+          mv llvm-mingw-20220323-msvcrt-ubuntu-18.04-x86_64 /opt/llvm-mingw
           export PATH="/opt/llvm-mingw/bin:$PATH"
           echo "/opt/llvm-mingw/bin" >> $GITHUB_PATH
       - name: Compile project
