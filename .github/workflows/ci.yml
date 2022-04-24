@@ -27,6 +27,7 @@ jobs:
     strategy:
       matrix:
         target_arch: ["intel32", "intel64"]
+    timeout-minutes: 20
     env:
       HOMEBREW_NO_ANALYTICS: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
