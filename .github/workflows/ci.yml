@@ -129,6 +129,7 @@
         "build-win32-clang"
       ],
       "runs-on" : "ubuntu-20.04",
+      "timeout-minutes" : 20,
       "if" : "startsWith(github.ref, 'refs/tags/v')",
       "steps" : [
         {
