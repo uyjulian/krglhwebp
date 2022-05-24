@@ -62,14 +62,14 @@
         },
         {
           "name" : "Compile project",
-          "run" : "make TARGET_ARCH=${{ matrix.target_arch }} ARCHIVE=${GITHUB_REPOSITORY#*/}.${{ matrix.target_arch }}.gcc.7z archive -j$(getconf _NPROCESSORS_ONLN)"
+          "run" : "make TARGET_ARCH=${{ matrix.target_arch }} ARCHIVE=\\$\\(PROJECT_BASENAME\\).${{ matrix.target_arch }}.gcc.7z archive -j$(getconf _NPROCESSORS_ONLN)"
         },
         {
           "name" : "Upload artifact",
           "uses" : "actions/upload-artifact@master",
           "with" : {
             "name" : "binary-win32-${{ matrix.target_arch }}-gcc",
-            "path" : "./**.${{ matrix.target_arch }}.gcc.7z"
+            "path" : "**/**.${{ matrix.target_arch }}.gcc.7z"
           }
         }
       ]
@@ -111,14 +111,14 @@
         },
         {
           "name" : "Compile project",
-          "run" : "make TARGET_ARCH=${{ matrix.target_arch }} ARCHIVE=${GITHUB_REPOSITORY#*/}.${{ matrix.target_arch }}.clang.7z archive -j$(getconf _NPROCESSORS_ONLN)"
+          "run" : "make TARGET_ARCH=${{ matrix.target_arch }} ARCHIVE=\\$\\(PROJECT_BASENAME\\).${{ matrix.target_arch }}.clang.7z archive -j$(getconf _NPROCESSORS_ONLN)"
         },
         {
           "name" : "Upload artifact",
           "uses" : "actions/upload-artifact@master",
           "with" : {
             "name" : "binary-win32-${{ matrix.target_arch }}-clang",
-            "path" : "./**.${{ matrix.target_arch }}.clang.7z"
+            "path" : "**/**.${{ matrix.target_arch }}.clang.7z"
           }
         }
       ]
@@ -181,7 +181,7 @@
           "with" : {
             "repo_token" : "${{ secrets.GITHUB_TOKEN }}",
             "prerelease" : "${{ contains(github.ref, '-rc') }}",
-            "files" : "binary-win32-intel32-gcc/**.7z\nbinary-win32-intel64-gcc/**.7z\nbinary-win32-intel32-clang/**.7z\nbinary-win32-intel64-clang/**.7z\nbinary-win32-arm32-clang/**.7z\nbinary-win32-arm64-clang/**.7z\n"
+            "files" : "binary-win32-intel32-gcc/**/**.7z\nbinary-win32-intel64-gcc/**/**.7z\nbinary-win32-intel32-clang/**/**.7z\nbinary-win32-intel64-clang/**/**.7z\nbinary-win32-arm32-clang/**/**.7z\nbinary-win32-arm64-clang/**/**.7z\n"
           }
         }
       ]
