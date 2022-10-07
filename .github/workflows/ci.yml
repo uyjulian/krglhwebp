@@ -76,7 +76,8 @@
         "HOMEBREW_NO_ANALYTICS" : "1",
         "HOMEBREW_NO_AUTO_UPDATE" : "1",
         "HOMEBREW_NO_INSTALL_UPGRADE" : "1",
-        "HOMEBREW_NO_INSTALL_CLEANUP" : "1"
+        "HOMEBREW_NO_INSTALL_CLEANUP" : "1",
+        "CMAKE_GENERATOR" : "Ninja"
       },
       "steps" : [
         {
@@ -92,7 +93,7 @@
         },
         {
           "name" : "Set up default build tools",
-          "run" : "brew install make nasm"
+          "run" : "brew install make nasm cmake ninja"
         },
         {
           "name" : "Set up mingw-w64 for GCC",
