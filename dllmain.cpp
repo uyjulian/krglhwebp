@@ -3,13 +3,15 @@
 #include <webp/encode.h>
 #include <webp/decode.h>
 #include <memory>
+
 #include "tp_stub.h"
+
 #define EXPORT(hr) extern "C" __declspec(dllexport) hr __stdcall
 
 static const tjs_int WEBP_VP8_HEADER_SIZE = 30;
 static const tjs_int WEBP_IDECODE_BUFFER_SZ = (1 << 16);
 
-void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback sizecallback, tTVPGraphicScanLineCallback scanlinecallback, tTVPMetaInfoPushCallback metainfopushcallback, IStream *src, tjs_int keyidx, tTVPGraphicLoadMode mode)
+void TVPLoadWEBP(void *formatdata, void *callbackdata, tTVPGraphicSizeCallback sizecallback, tTVPGraphicScanLineCallback scanlinecallback, tTVPMetaInfoPushCallback metainfopushcallback, IStream *src, tjs_int keyidx, tTVPGraphicLoadMode mode)
 {
 	STATSTG stg;
 
@@ -103,20 +105,20 @@ void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 
 	{
 		config.output.colorspace = MODE_BGRA;
-		config.output.u.RGBA.rgba = (uint8_t*)outbuf;
+		config.output.u.RGBA.rgba = (uint8_t *)outbuf;
 		config.output.u.RGBA.stride = outbufpitch;
 		config.output.u.RGBA.size = outbufpitch * height;
 		config.output.is_external_memory = 1;
 	}
 
-	WebPIDecoder* idec = WebPIDecode(NULL, 0, &config);
+	WebPIDecoder *idec = WebPIDecode(NULL, 0, &config);
 	if (NULL == idec)
 	{
 		WebPFreeDecBuffer(&(config.output));
 		TVPThrowExceptionMessage(TJS_W("Could not allocate decoder"));
 		return;
 	}
-	tjs_uint8* input = (tjs_uint8*)malloc(WEBP_IDECODE_BUFFER_SZ);
+	tjs_uint8 *input = (tjs_uint8 *)malloc(WEBP_IDECODE_BUFFER_SZ);
 	if (NULL == input)
 	{
 		WebPFreeDecBuffer(&(config.output));
@@ -155,11 +157,11 @@ void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 			}
 			if (sizeof(tjs_uint32) == size_pixel)
 			{
-				memcpy(scanline, (const void*)&outbuf[y * outbufpitch], width * size_pixel);
+				memcpy(scanline, (const void *)&outbuf[y * outbufpitch], width * size_pixel);
 			}
 			else if (sizeof(tjs_uint8) == size_pixel)
 			{
-				TVPBLConvert32BitTo8Bit((tjs_uint8*)scanline, (const tjs_uint32*)(tjs_uint8*)&outbuf[y * outbufpitch], width * size_pixel);
+				TVPBLConvert32BitTo8Bit((tjs_uint8 *)scanline, (const tjs_uint32 *)(tjs_uint8 *)&outbuf[y * outbufpitch], width * size_pixel);
 			}
 			scanlinecallback(callbackdata, -1);
 		}
@@ -189,7 +191,7 @@ void TVPLoadWEBP(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 	}
 }
 
-void TVPLoadHeaderWEBP(void* formatdata, IStream *src, iTJSDispatch2** dic)
+void TVPLoadHeaderWEBP(void *formatdata, IStream *src, iTJSDispatch2 **dic)
 {
 	STATSTG stg;
 
@@ -236,15 +238,17 @@ void TVPLoadHeaderWEBP(void* formatdata, IStream *src, iTJSDispatch2** dic)
 	(*dic)->PropSet(TJS_MEMBERENSURE, TJS_W("format"), 0, &val, (*dic));
 }
 
-bool TVPAcceptSaveAsWebP(void* formatdata, const ttstr & type, class iTJSDispatch2** dic ) {
-	if( type.StartsWith(TJS_W("webp")) || (type == TJS_W(".webp")) ) return true;
+bool TVPAcceptSaveAsWebP(void *formatdata, const ttstr &type, class iTJSDispatch2 **dic)
+{
+	if (type.StartsWith(TJS_W("webp")) || (type == TJS_W(".webp")))
+		return true;
 	return false;
 }
 
-static int WebPIStreamWrite(const uint8_t* data, size_t data_size, const WebPPicture* pic)
+static int WebPIStreamWrite(const uint8_t *data, size_t data_size, const WebPPicture *pic)
 {
 	ULONG bytes_written = 0;
-	((IStream*)(pic->custom_ptr))->Write(data, data_size, &bytes_written);
+	((IStream *)(pic->custom_ptr))->Write(data, data_size, &bytes_written);
 	return bytes_written == data_size;
 }
 
@@ -254,7 +258,7 @@ static int WebPIStreamWrite(const uint8_t* data, size_t data_size, const WebPPic
 		opt_->parameter = (casttype)param[2]->access_method(); \
 	}
 
-void TVPSaveAsWebP(void* formatdata, void* callbackdata, IStream* dst, const ttstr & mode, tjs_uint width, tjs_uint height, tTVPGraphicSaveScanLineCallback scanlinecallback, iTJSDispatch2* meta )
+void TVPSaveAsWebP(void *formatdata, void *callbackdata, IStream *dst, const ttstr &mode, tjs_uint width, tjs_uint height, tTVPGraphicSaveScanLineCallback scanlinecallback, iTJSDispatch2 *meta)
 {
 	if (height == 0 || width == 0)
 	{
@@ -266,7 +270,7 @@ void TVPSaveAsWebP(void* formatdata, void* callbackdata, IStream* dst, const tts
 	std::unique_ptr<uint8_t[]> data(new uint8_t[datasize]);
 	for (tjs_uint y = 0; y < height; y += 1)
 	{
-		memcpy(&(data[y*stride]), scanlinecallback(callbackdata,y), stride);
+		memcpy(&(data[y * stride]), scanlinecallback(callbackdata, y), stride);
 	}
 	WebPConfig config;
 	if (!WebPConfigPreset(&config, WEBP_PRESET_DRAWING, 100))
@@ -279,8 +283,8 @@ void TVPSaveAsWebP(void* formatdata, void* callbackdata, IStream* dst, const tts
 		struct MetaDictionaryEnumCallback : public tTJSDispatch
 		{
 			WebPConfig *opt_;
-			MetaDictionaryEnumCallback( WebPConfig *opt ) : opt_(opt) {}
-			tjs_error TJS_INTF_METHOD FuncCall(tjs_uint32 flag, const tjs_char * membername, tjs_uint32 *hint, tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
+			MetaDictionaryEnumCallback(WebPConfig *opt) : opt_(opt) {}
+			tjs_error TJS_INTF_METHOD FuncCall(tjs_uint32 flag, const tjs_char *membername, tjs_uint32 *hint, tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
 			{ // called from tTJSCustomObject::EnumMembers
 				if (numparams < 3)
 				{
@@ -297,7 +301,9 @@ void TVPSaveAsWebP(void* formatdata, void* callbackdata, IStream* dst, const tts
 				}
 				// push items
 				ttstr value = *param[0];
-				if (0) {}
+				if (0)
+				{
+				}
 				WEBP_OPTION(lossless, int, AsInteger)
 				WEBP_OPTION(quality, float, AsReal)
 				WEBP_OPTION(method, int, AsInteger)
@@ -332,7 +338,7 @@ void TVPSaveAsWebP(void* formatdata, void* callbackdata, IStream* dst, const tts
 				}
 				return TJS_S_OK;
 			}
-		} callback( &config );
+		} callback(&config);
 		tTJSVariantClosure clo(&callback, NULL);
 		meta->EnumMembers(TJS_IGNOREPROP, &clo, meta);
 	}
@@ -360,7 +366,7 @@ void TVPSaveAsWebP(void* formatdata, void* callbackdata, IStream* dst, const tts
 		return;
 	}
 	pic.writer = WebPIStreamWrite;
-	pic.custom_ptr = (void*)dst;
+	pic.custom_ptr = (void *)dst;
 	int ok = WebPEncode(&config, &pic);
 	WebPPictureFree(&pic);
 	if (!ok)
@@ -369,7 +375,8 @@ void TVPSaveAsWebP(void* formatdata, void* callbackdata, IStream* dst, const tts
 	}
 }
 
-BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved ) {
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+{
 	return TRUE;
 }
 
@@ -378,16 +385,18 @@ EXPORT(HRESULT) V2Link(iTVPFunctionExporter *exporter)
 {
 	TVPInitImportStub(exporter);
 
-	TVPRegisterGraphicLoadingHandler( ttstr(TJS_W(".webp")), TVPLoadWEBP, TVPLoadHeaderWEBP, TVPSaveAsWebP, TVPAcceptSaveAsWebP, NULL );
+	TVPRegisterGraphicLoadingHandler(ttstr(TJS_W(".webp")), TVPLoadWEBP, TVPLoadHeaderWEBP, TVPSaveAsWebP, TVPAcceptSaveAsWebP, NULL);
 
 	GlobalRefCountAtInit = TVPPluginGlobalRefCount;
 	return S_OK;
 }
 
-EXPORT(HRESULT) V2Unlink() {
-	if(TVPPluginGlobalRefCount > GlobalRefCountAtInit) return E_FAIL;
+EXPORT(HRESULT) V2Unlink()
+{
+	if (TVPPluginGlobalRefCount > GlobalRefCountAtInit)
+		return E_FAIL;
 	
-	TVPRegisterGraphicLoadingHandler( ttstr(TJS_W(".webp")), TVPLoadWEBP, TVPLoadHeaderWEBP, TVPSaveAsWebP, TVPAcceptSaveAsWebP, NULL );
+	TVPRegisterGraphicLoadingHandler(ttstr(TJS_W(".webp")), TVPLoadWEBP, TVPLoadHeaderWEBP, TVPSaveAsWebP, TVPAcceptSaveAsWebP, NULL);
 
 	TVPUninitImportStub();
 	return S_OK;
