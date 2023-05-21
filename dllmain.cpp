@@ -14,13 +14,26 @@ static const tjs_int WEBP_IDECODE_BUFFER_SZ = (1 << 16);
 void TVPLoadWEBP(void *formatdata, void *callbackdata, tTVPGraphicSizeCallback sizecallback, tTVPGraphicScanLineCallback scanlinecallback, tTVPMetaInfoPushCallback metainfopushcallback, IStream *src, tjs_int keyidx, tTVPGraphicLoadMode mode)
 {
 	STATSTG stg;
+	const tjs_char *error;
+	tjs_int datasize;
+	int width, height;
+	tjs_uint8 *line0;
+	int size_pixel;
+	tjs_int pitch;
+	tjs_uint8 *outbuf;
+	tjs_int outbufpitch;
+	WebPIDecoder *idec;
+	tjs_uint8 *input;
+	VP8StatusCode status;
+
+	error = NULL;
 
 	src->Stat(&stg, STATFLAG_NONAME);
-	tjs_int datasize = stg.cbSize.QuadPart;
+	datasize = stg.cbSize.QuadPart;
 	if (datasize < WEBP_VP8_HEADER_SIZE)
 	{
-		TVPThrowExceptionMessage(TJS_W("File size is too small"));
-		return;
+		error = TJS_W("File size is too small");
+		goto finish;
 	}
 
 	uint8_t headerdata[WEBP_VP8_HEADER_SIZE];
@@ -28,33 +41,33 @@ void TVPLoadWEBP(void *formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 	src->Read(headerdata, WEBP_VP8_HEADER_SIZE, &read);
 	if (read != WEBP_VP8_HEADER_SIZE)
 	{
-		TVPThrowExceptionMessage(TJS_W("Read size is too small"));
-		return;
+		error = TJS_W("Read size is too small");
+		goto finish;
 	}
 
 	WebPDecoderConfig config;
 	if (WebPInitDecoderConfig(&config) == 0)
 	{
-		TVPThrowExceptionMessage(TJS_W("Error initializing decoder"));
-		return;
+		error = TJS_W("Error initializing decoder");
+		goto finish;
 	}
 	if (WebPGetFeatures(headerdata, WEBP_VP8_HEADER_SIZE, &config.input) != VP8_STATUS_OK)
 	{
-		TVPThrowExceptionMessage(TJS_W("Error getting features"));
-		return;
+		error = TJS_W("Error getting features");
+		goto finish;
 	}
-	int width = 0;
-	int height = 0;
+	width = 0;
+	height = 0;
 	if (WebPGetInfo(headerdata, WEBP_VP8_HEADER_SIZE, &width, &height) == 0)
 	{
-		TVPThrowExceptionMessage(TJS_W("Error getting size"));
-		return;
+		error = TJS_W("Error getting size");
+		goto finish;
 	}
 	sizecallback(callbackdata, width, height);
 	// Determine the buffer pitch...
-	tjs_uint8 *line0 = (tjs_uint8 *)scanlinecallback(callbackdata, 0);
-	int size_pixel = (glmNormal != mode) ? sizeof(tjs_uint8) : sizeof(tjs_uint32);
-	tjs_int pitch = width * size_pixel;
+	line0 = (tjs_uint8 *)scanlinecallback(callbackdata, 0);
+	size_pixel = (glmNormal != mode) ? sizeof(tjs_uint8) : sizeof(tjs_uint32);
+	pitch = width * size_pixel;
 	// If we only have one line, we don't need pitch anyways
 	if (height > 1)
 	{
@@ -65,8 +78,8 @@ void TVPLoadWEBP(void *formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 		}
 	}
 
-	tjs_uint8 *outbuf = NULL;
-	tjs_int outbufpitch = 0;
+	outbuf = NULL;
+	outbufpitch = 0;
 	if (0 == pitch || glmNormal != mode)
 	{
 		// we need a temparary buffer
@@ -97,8 +110,8 @@ void TVPLoadWEBP(void *formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 
 		if (!outbuf)
 		{
-			TVPThrowExceptionMessage(TJS_W("Could not allocate temporary buffer"));
-			return;
+			error = TJS_W("Could not allocate temporary buffer");
+			goto finish;
 		}
 	}
 	memset(outbuf, 0, outbufpitch * height);
@@ -111,34 +124,56 @@ void TVPLoadWEBP(void *formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 		config.output.is_external_memory = 1;
 	}
 
-	WebPIDecoder *idec = WebPIDecode(NULL, 0, &config);
+	idec = WebPIDecode(NULL, 0, &config);
 	if (NULL == idec)
 	{
 		WebPFreeDecBuffer(&(config.output));
-		TVPThrowExceptionMessage(TJS_W("Could not allocate decoder"));
-		return;
+		error = TJS_W("Could not allocate decoder");
+		goto finish;
 	}
-	tjs_uint8 *input = (tjs_uint8 *)malloc(WEBP_IDECODE_BUFFER_SZ);
+	input = (tjs_uint8 *)malloc(WEBP_IDECODE_BUFFER_SZ);
 	if (NULL == input)
 	{
 		WebPFreeDecBuffer(&(config.output));
-		TVPThrowExceptionMessage(TJS_W("Could not allocate decode buffer"));
+		error = TJS_W("Could not allocate decode buffer");
+		goto finish;
 	}
-	bool success = true;
-	VP8StatusCode status = VP8_STATUS_SUSPENDED;
 	status = WebPIAppend(idec, headerdata, WEBP_VP8_HEADER_SIZE);
 	do
 	{
 		src->Read(input, WEBP_IDECODE_BUFFER_SZ, &read);
 		if (0 == read)
 		{
-			success = false;
+			error = TJS_W("Not enough data in file");
 			break;
 		}
 		status = WebPIAppend(idec, input, read);
 		if (VP8_STATUS_OK != status && VP8_STATUS_SUSPENDED != status)
 		{
-			success = false;
+			switch(status)
+			{
+				case VP8_STATUS_OUT_OF_MEMORY:
+					error = TJS_W("Out of memory");
+					break;
+				case VP8_STATUS_INVALID_PARAM:
+					error = TJS_W("Invalid parameter");
+					break;
+				case VP8_STATUS_BITSTREAM_ERROR:
+					error = TJS_W("Bitstream error");
+					break;
+				case VP8_STATUS_UNSUPPORTED_FEATURE:
+					error = TJS_W("Unsupported feature");
+					break;
+				case VP8_STATUS_USER_ABORT:
+					error = TJS_W("User abort");
+					break;
+				case VP8_STATUS_NOT_ENOUGH_DATA:
+					error = TJS_W("Not enough data");
+					break;
+				default:
+					error = TJS_W("Unknown error");
+					break;
+			}
 			break;
 		}
 	} while (VP8_STATUS_OK != status);
@@ -184,9 +219,10 @@ void TVPLoadWEBP(void *formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 #endif
 	WebPFreeDecBuffer(&(config.output));
 
-	if (false == success)
+finish:
+	if (NULL != error)
 	{
-		TVPThrowExceptionMessage(TJS_W("Unsuccessful decode"));
+		TVPThrowExceptionMessage(TJS_W("krglhwebp decode error: %1"), error);
 		return;
 	}
 }
