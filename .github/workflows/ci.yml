@@ -80,12 +80,8 @@
           ]
         }
       },
-      "timeout-minutes" : 30,
+      "timeout-minutes" : 40,
       "env" : {
-        "HOMEBREW_NO_ANALYTICS" : "1",
-        "HOMEBREW_NO_AUTO_UPDATE" : "1",
-        "HOMEBREW_NO_INSTALL_UPGRADE" : "1",
-        "HOMEBREW_NO_INSTALL_CLEANUP" : "1",
         "CMAKE_GENERATOR" : "Ninja"
       },
       "steps" : [
@@ -97,9 +93,19 @@
           }
         },
         {
+          "name" : "Read additional flags",
+          "id" : "additional_flags",
+          "run" : "if test -f ./.github/workflows_flags; then\ncat ./.github/workflows_flags >> $GITHUB_OUTPUT\nfi"
+        },
+        {
+          "name" : "Set up Wine",
+          "if" : "steps.additional_flags.outputs.setup_wine == 'true'",
+          "run" : "bash /usr/local/util_scripts/setup_wine.bash"
+        },
+        {
           "name" : "Set up mingw-w64 for Clang",
           "if" : "matrix.platform.compiler == 'clang'",
-          "run" : "echo \"/opt/llvm-mingw/bin\" >> $GITHUB_PATH"
+          "run" : "bash /usr/local/util_scripts/setup_llvm_mingw.bash"
         },
         {
           "name" : "Compile project",
