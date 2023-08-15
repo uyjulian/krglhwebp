@@ -1,5 +1,9 @@
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
+#include <objidl.h>
 #include <webp/encode.h>
 #include <webp/decode.h>
 #include <memory>
