@@ -87,6 +87,7 @@
       "steps" : [
         {
           "name" : "Checkout repository",
+          "timeout-minutes" : 5,
           "uses" : "actions/checkout@v4",
           "with" : {
             "submodules" : "recursive"
@@ -95,16 +96,19 @@
         {
           "name" : "Read additional flags",
           "id" : "additional_flags",
+          "timeout-minutes" : 5,
           "run" : "if test -f ./.github/workflows_flags; then\ncat ./.github/workflows_flags >> $GITHUB_OUTPUT\nfi"
         },
         {
           "name" : "Set up Wine",
           "if" : "steps.additional_flags.outputs.setup_wine == 'true'",
+          "timeout-minutes" : 5,
           "run" : "bash /usr/local/util_scripts/setup_wine.bash"
         },
         {
           "name" : "Set up mingw-w64 for Clang",
           "if" : "matrix.platform.compiler == 'clang'",
+          "timeout-minutes" : 5,
           "run" : "bash /usr/local/util_scripts/setup_llvm_mingw.bash"
         },
         {
@@ -114,6 +118,7 @@
         {
           "name" : "Upload artifact",
           "uses" : "actions/upload-artifact@v4",
+          "timeout-minutes" : 5,
           "with" : {
             "name" : "binary-win32-${{ matrix.platform.target-arch }}-${{ matrix.platform.compiler }}",
             "path" : "**/**.${{ matrix.platform.target-arch }}.${{ matrix.platform.compiler }}.7z"
@@ -131,11 +136,13 @@
       "steps" : [
         {
           "name" : "Download all artifacts",
+          "timeout-minutes" : 5,
           "uses" : "actions/download-artifact@v4"
         },
         {
           "name" : "Create release",
           "if" : "github.ref_type == 'tag' && github.ref != 'refs/tags/latest'",
+          "timeout-minutes" : 5,
           "uses" : "marvinpinto/action-automatic-releases@latest",
           "with" : {
             "repo_token" : "${{ secrets.GITHUB_TOKEN }}",
