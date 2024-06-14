@@ -1,3 +1,10 @@
+build
+savedata
+.vscode
+bin
+vs2012
+vs2015
+*.exe
 *.pdb
 *.obj
 *.lib
@@ -9,10 +16,12 @@
 *.user
 *.res
 *.sbr
+*.VC.db
+*.cache
 .vs/
 *.dll
 *.o
+*.a
 *.7z
 *.dep.make
 build-*/
-
