@@ -131,6 +131,10 @@
         "build-win32"
       ],
       "runs-on" : "ubuntu-latest",
+      "container" : {
+        "image" : "ubuntu:20.04",
+        "options" : "--user 0"
+      },
       "timeout-minutes" : 5,
       "if" : "github.ref_type == 'tag' && github.ref != 'refs/tags/latest'",
       "steps" : [
