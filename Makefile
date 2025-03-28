@@ -26,9 +26,9 @@ INCFLAGS += -Iexternal/libwebp -Iexternal/libwebp/src
 
 PROJECT_BASENAME = krglhwebp
 
-RC_FILEDESCRIPTION = WebP support for TVP(KIRIKIRI) Z
-RC_LEGALCOPYRIGHT = Copyright (C) 2019-2019 Julian Uy; See details of license at license.txt, or the source code location.
-RC_PRODUCTNAME = WebP support for TVP(KIRIKIRI) Z
+RC_DESC ?= WebP support for TVP(KIRIKIRI) Z
+RC_PRODUCTNAME ?= WebP support for TVP(KIRIKIRI) Z
+RC_LEGALCOPYRIGHT ?= Copyright (C) 2019-2019 Julian Uy; See details of license at license.txt, or the source code location.
 
 include external/tp_stubz/Rules.lib.make
 
